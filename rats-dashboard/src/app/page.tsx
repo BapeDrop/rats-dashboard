@@ -51,7 +51,8 @@ function getDateStr(d: Date) {
 
 function getDayLabel(dateStr: string) {
   const today = getDateStr(new Date());
-  const tomorrow = getDateStr(new Date(Date.now() + 86400000));
+  const now = new Date();
+  const tomorrow = getDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
   if (dateStr === today) return "TONIGHT";
   if (dateStr === tomorrow) return "TOMORROW";
   const d = new Date(dateStr + "T12:00:00");
@@ -60,8 +61,10 @@ function getDayLabel(dateStr: string) {
 
 function getNext7Days(): string[] {
   const days: string[] = [];
+  const today = new Date();
   for (let i = 0; i < 7; i++) {
-    days.push(getDateStr(new Date(Date.now() + i * 86400000)));
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+    days.push(getDateStr(d));
   }
   return days;
 }
