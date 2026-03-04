@@ -43,7 +43,10 @@ const QUOTES = [
 ];
 
 function getDateStr(d: Date) {
-  return d.toISOString().split("T")[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getDayLabel(dateStr: string) {
@@ -95,21 +98,27 @@ export default function Home() {
   };
 
   const saveStatus = async (playerName: string, day: string, status: Status, reason: string) => {
+    // Optimistic update first
+    setAllData((prev) => ({
+      ...prev,
+      [playerName]: {
+        ...prev[playerName],
+        [day]: { status, reason, updatedAt: new Date().toISOString() },
+      },
+    }));
+
     try {
-      await fetch("/api/statuses", {
+      const res = await fetch("/api/statuses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerName, day, status, reason }),
       });
-      await fetchStatuses();
+      if (res.ok) {
+        const data = await res.json();
+        if (data.statuses) setAllData(data.statuses);
+      }
     } catch {
-      setAllData((prev) => ({
-        ...prev,
-        [playerName]: {
-          ...prev[playerName],
-          [day]: { status, reason, updatedAt: new Date().toISOString() },
-        },
-      }));
+      // optimistic update already applied
     }
   };
 
